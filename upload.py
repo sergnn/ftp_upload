@@ -30,15 +30,13 @@ def dir_startswith_int(path: Path) -> bool:
     return path.is_dir() and path.stem.split('_', 1)[0].isdigit()
 
 
-def matching_dirs(root: Path) -> typing.List[Path]:
+def web_jpegs(root: Path) -> typing.List[Path]:
     """Find all subdirs  with the name 'web'"""
     subdirs = [subdir for subdir in root.iterdir() if dir_startswith_int(subdir)]
-    dirs = []
+    jpegs = []
     for subdir in subdirs:
-        web_dir = subdir / 'web'
-        if os.path.exists(web_dir):
-            dirs.append(web_dir)
-    return dirs
+        jpegs.extend([jpeg for jpeg in subdir.rglob('web/*.jpg')])
+    return jpegs
 
 
 def main():
@@ -47,15 +45,14 @@ def main():
     ftp.login(**FTP_CREDENTIALS)
     ftp.encoding = 'utf-8'
     files_on_ftp = get_files_from_ftp(ftp)
-    for subdir in matching_dirs(SRCDIR):
-        for file in subdir.iterdir():
-            if file.suffix == '.jpg' and not file.stem.startswith('.'):
-                filesize = file.stat().st_size
-                if filesize == files_on_ftp.get(file.name, -1):
-                    print(f'SKIP: {file}')
-                else:
-                    print(f'{file} size: {filesize}')
-                    upload(ftp, file)
+    for jpeg in web_jpegs(SRCDIR):
+        if not jpeg.stem.startswith('.'):
+            filesize = jpeg.stat().st_size
+            if filesize == files_on_ftp.get(jpeg.name, -1):
+                print(f'SKIP: {jpeg}')
+            else:
+                print(f'{jpeg} size: {filesize}')
+                upload(ftp, jpeg)
 
     ftp.quit()
     print('Done')
