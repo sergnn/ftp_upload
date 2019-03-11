@@ -31,7 +31,7 @@ def dir_startswith_int(path: Path) -> bool:
 
 
 def web_jpegs(root: Path) -> typing.List[Path]:
-    """Find all subdirs  with the name 'web'"""
+    """Find all JPEG files in 'web' subfolders"""
     subdirs = [subdir for subdir in root.iterdir() if dir_startswith_int(subdir)]
     jpegs = []
     for subdir in subdirs:
